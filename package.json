@@ -1,0 +1,21 @@
+{
+  "name": "multi-process-dependencies-graph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Brian Di Palma <offler@gmail.com> (https://github.com/briandipalma)",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^4.1.1",
+    "eslint-config-airbnb": "^15.0.1",
+    "eslint-config-prettier": "^2.3.0",
+    "eslint-plugin-import": "^2.6.1"
+  },
+  "dependencies": {
+    "acorn": "^5.0.3"
+  }
+}

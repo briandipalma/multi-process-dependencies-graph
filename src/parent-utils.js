@@ -7,7 +7,7 @@ const childPath = join(__dirname, "./child-process-module");
  * @param {*} parentState 
  */
 function createProcess(parentState) {
-  const childProcess = fork(childPath);
+  const childProcess = fork(childPath, undefined, { execArgv: [] });
 
   childProcess.on("close", (code, signal) =>
     console.log(`Close: ${code}, ${signal}`)

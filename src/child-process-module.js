@@ -1,9 +1,14 @@
 const { readFileSync } = require("fs");
 
 // @ts-ignore
-const { parse } = require("acorn-jsx");
+const acorn = require("acorn");
+const injectAcornJsx = require("acorn-jsx/inject");
+const injectAcornObjectRestSpread = require("acorn-object-rest-spread/inject");
 // @ts-ignore
 const { traverse } = require("estraverse-fb");
+
+injectAcornJsx(acorn);
+injectAcornObjectRestSpread(acorn);
 
 /**
  * @typedef {Object} CallExpressionNode
@@ -47,7 +52,9 @@ function moduleSourcesFilter(moduleSources, path) {
   return (/** @type {string} */ moduleSource) => {
     if (
       path.endsWith("fell/converted_library.js") ||
-      path.endsWith("momentjs/converted_library.js")
+      path.endsWith("momentjs/converted_library.js") ||
+      path.endsWith("bignumberjs/converted_library.js") ||
+      path.endsWith("npm-modules/converted_library.js")
     ) {
       return;
     }
@@ -73,9 +80,26 @@ function moduleSourcesFilter(moduleSources, path) {
  */
 function safeParse(sourceCode, path) {
   try {
-    return parse(sourceCode, { plugins: { jsx: true }, sourceType: "module" });
+    return acorn.parse(sourceCode, {
+      plugins: { jsx: true, objectRestSpread: true },
+      sourceType: "module"
+    });
   } catch (e) {
     console.log(`\nFile ${path} caused parsing error.`);
+
+    throw e;
+  }
+}
+
+/**
+ * @param {string} sourceCode
+ * @param {string} path 
+ */
+function safeReadFile(path) {
+  try {
+    return readFileSync(path, "utf8");
+  } catch (e) {
+    console.log(`\nFile ${path} could not be read from file system.`);
 
     throw e;
   }
@@ -88,7 +112,7 @@ function handleParentMessage(message) {
   const { type, data: { path } } = message;
 
   if (type === "extract-dependencies") {
-    const sourceCode = readFileSync(path, "utf8");
+    const sourceCode = safeReadFile(path);
     const ast = safeParse(sourceCode, path);
     /** @type {string[]} */
     const moduleSources = [];

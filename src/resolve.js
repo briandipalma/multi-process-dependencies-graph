@@ -1,27 +1,25 @@
-const { dirname, resolve } = require("path");
+const { dirname } = require("path");
+
+const { sync } = require("resolve");
 
 /**
- * @param {string} moduleSource 
- */
-function isRelative(moduleSource) {
-  return moduleSource[0] === ".";
-}
-
-/**
- * @param {string[]} dependencies - Module sources found in a file.
- * @param {string} importerPath - Absolute path of file with module sources.
+ * @param {*} fileGraphNode
  * @param {*} parentState 
  */
-function resolveDependencies(dependencies, importerPath, parentState) {
-  for (const dependency of dependencies) {
-    if (isRelative(dependency)) {
-      const resolvedFile = resolve(dirname(importerPath), dependency);
+function resolveDependencies(fileGraphNode, parentState) {
+  const moduleSourceToPath = {};
+  const importerDir = dirname(fileGraphNode.path);
 
-      parentState.queueFileToParse(resolvedFile);
-    }
+  for (const moduleSource of fileGraphNode.moduleSources) {
+    const resolvedFile = sync(moduleSource, { basedir: importerDir });
+
+    moduleSourceToPath[moduleSource] = resolvedFile;
+    parentState.queueFileToParse(resolvedFile);
   }
 
   parentState.handleOutstandingWork();
+
+  return moduleSourceToPath;
 }
 
 module.exports.resolveDependencies = resolveDependencies;

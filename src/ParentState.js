@@ -1,12 +1,12 @@
 const { cpus } = require("os");
 
+const { FileGraphNode } = require("./FileGraphNode");
 const { createProcess } = require("./parent-utils");
-const { resolveDependencies } = require("./resolve");
 
 /**
  * @typedef {Object} FileInfo
- * @property {string} ast
- * @property {string[]} dependencies - List of module sources imported by file.
+ * @property {Object} ast
+ * @property {string[]} moduleSources - List of module sources imported by file.
  * @property {string} path - Absolute file path.
  * @property {string} sourceCode
  */
@@ -16,9 +16,12 @@ class ParentState {
    * @param {string} graphEntry - An absolute file path.
    */
   constructor(graphEntry) {
+    const graphEntryNode = new FileGraphNode(graphEntry);
+
     this.availableProcesses = cpus().map(() => createProcess(this));
-    this.memoryFS = { [graphEntry]: {} };
-    this.resolvedFilesToProcess = [graphEntry];
+    this.memoryFS = { [graphEntry]: graphEntryNode };
+    this.resolvedNodesToProcess = [graphEntryNode];
+    this.occupiedProcesses = {};
   }
 
   /**
@@ -26,15 +29,10 @@ class ParentState {
    */
   fileDependenciesExtracted(data) {
     const filePath = data.path;
-    const fileInfo = this.memoryFS[filePath];
+    const fileGraphNode = this.memoryFS[filePath];
 
-    fileInfo.ast = data.ast;
-    fileInfo.sourceCode = data.sourceCode;
-
-    this.availableProcesses.push(fileInfo.childProcess);
-    delete this.memoryFS[filePath].childProcess;
-
-    resolveDependencies(data.dependencies, filePath, this);
+    this._releaseProcess(filePath);
+    fileGraphNode.processFileInfo(data, this);
   }
 
   /**
@@ -50,13 +48,13 @@ class ParentState {
 
   handleOutstandingWork() {
     let processesAvailable = this.availableProcesses.length > 0;
-    let filesToProcess = this.resolvedFilesToProcess.length > 0;
+    let nodesToProcess = this.resolvedNodesToProcess.length > 0;
 
-    while (filesToProcess && processesAvailable) {
+    while (nodesToProcess && processesAvailable) {
       this._extractFileDependencies();
 
       processesAvailable = this.availableProcesses.length > 0;
-      filesToProcess = this.resolvedFilesToProcess.length > 0;
+      nodesToProcess = this.resolvedNodesToProcess.length > 0;
     }
   }
 
@@ -65,26 +63,36 @@ class ParentState {
    */
   queueFileToParse(path) {
     if (this.memoryFS[path] === undefined) {
-      this.memoryFS[path] = { path };
-      this.resolvedFilesToProcess.push(path);
+      this.memoryFS[path] = new FileGraphNode(path);
+      this.resolvedNodesToProcess.push(this.memoryFS[path]);
     }
   }
 
   _extractFileDependencies() {
     const childProcess = this.availableProcesses.pop();
-    const fileToProcess = this.resolvedFilesToProcess.pop();
+    const fileToProcess = this.resolvedNodesToProcess.pop();
 
     if (fileToProcess && childProcess) {
-      this.memoryFS[fileToProcess].childProcess = childProcess;
+      this.occupiedProcesses[fileToProcess.path] = childProcess;
       childProcess.send({
         type: "extract-dependencies",
-        data: { path: fileToProcess }
+        data: { path: fileToProcess.path }
       });
     } else {
       console.warn(
         `_extractFileDependencies: ${fileToProcess}, ${childProcess}.`
       );
     }
+  }
+
+  /**
+   * @param {string} path 
+   */
+  _releaseProcess(path) {
+    const childProcess = this.occupiedProcesses[path];
+
+    this.availableProcesses.push(childProcess);
+    delete this.occupiedProcesses[path];
   }
 }
 

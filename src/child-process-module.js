@@ -23,16 +23,16 @@ function isAPackageImport(node) {
 }
 
 /**
- * @param {string[]} dependencies - Module sources in AST.
+ * @param {string[]} moduleSources - Module sources in AST.
  */
-function createImportsVisitor(dependencies) {
+function createImportsVisitor(moduleSources) {
   return {
     /**
      * @param {CallExpressionNode} node 
      */
     CallExpression(node) {
       if (isAPackageImport(node) && node.arguments[0].value) {
-        dependencies.push(node.arguments[0].value);
+        moduleSources.push(node.arguments[0].value);
       }
     },
 
@@ -40,7 +40,7 @@ function createImportsVisitor(dependencies) {
      * @param {ImportDeclarationNode} node 
      */
     ImportDeclaration(node) {
-      dependencies.push(node.source.value);
+      moduleSources.push(node.source.value);
     }
   };
 }
@@ -49,23 +49,23 @@ function createImportsVisitor(dependencies) {
  * @param {{type: string, data: {path: string}}} message 
  */
 function handleParentMessage(message) {
-  const { type, data } = message;
+  const { type, data: { path } } = message;
 
   if (type === "extract-dependencies") {
-    const sourceCode = readFileSync(data.path, "utf8");
+    const sourceCode = readFileSync(path, "utf8");
     const ast = parse(sourceCode, { sourceType: "module" });
     /** @type {string[]} */
-    const dependencies = [];
+    const moduleSources = [];
 
-    simple(ast, createImportsVisitor(dependencies));
+    simple(ast, createImportsVisitor(moduleSources));
 
     if (process.send) {
       process.send({
         type: "dependencies-extracted",
         data: {
           ast,
-          dependencies,
-          path: data.path,
+          moduleSources,
+          path,
           sourceCode
         }
       });

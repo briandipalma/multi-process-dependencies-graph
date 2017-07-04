@@ -16,6 +16,7 @@ class ParentState {
    * @param {string} graphEntry - An absolute file path.
    */
   constructor(graphEntry) {
+    this.startTime = new Date();
     const graphEntryNode = new FileGraphNode(graphEntry);
 
     this.availableProcesses = cpus().map(() => createProcess(this));
@@ -43,6 +44,14 @@ class ParentState {
 
     if (type === "dependencies-extracted") {
       this.fileDependenciesExtracted(data);
+    }
+
+    if (
+      this.resolvedNodesToProcess.length === 0 &&
+      this.availableProcesses.length === cpus().length
+    ) {
+      console.log("Finished building graph.", new Date() - this.startTime);
+      console.log(Object.keys(this.memoryFS).length);
     }
   }
 

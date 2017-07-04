@@ -3,13 +3,20 @@ const { join } = require("path");
 
 const childPath = join(__dirname, "./child-process-module");
 
+/**
+ * @param {*} parentState 
+ */
 function createProcess(parentState) {
   const childProcess = fork(childPath);
 
-  childProcess.on("close", (...args) => console.log(`Close ${args}`));
-  childProcess.on("disconnect", (...args) => console.log(`Disconnect ${args}`));
-  childProcess.on("error", (...args) => console.log(`Error ${args}`));
-  childProcess.on("exit", (...args) => console.log(`Exit ${args}`));
+  childProcess.on("close", (code, signal) =>
+    console.log(`Close: ${code}, ${signal}`)
+  );
+  childProcess.on("disconnect", () => console.log(`Disconnect`));
+  childProcess.on("error", err => console.log(`Error: ${err}`));
+  childProcess.on("exit", (code, signal) =>
+    console.log(`Exit: ${code}, ${signal}`)
+  );
   childProcess.on("message", message =>
     parentState.handleChildProcessMessage(message)
   );

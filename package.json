@@ -10,6 +10,8 @@
   "author": "Brian Di Palma <offler@gmail.com> (https://github.com/briandipalma)",
   "license": "ISC",
   "devDependencies": {
+    "@types/acorn": "^4.0.2",
+    "@types/node": "^8.0.7",
     "eslint": "^4.1.1",
     "eslint-config-airbnb": "^15.0.1",
     "eslint-config-prettier": "^2.3.0",

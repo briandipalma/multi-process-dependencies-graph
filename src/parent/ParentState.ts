@@ -1,9 +1,9 @@
-const { cpus } = require("os");
+const physicalCPUCount = require("physical-cpu-count");
 
 import { FileGraphNode } from "../graph/FileGraphNode";
 import { createProcess } from "./parent-utils";
 
-const CORES = cpus();
+const CORES = Array.from({ length: physicalCPUCount });
 
 export interface FileInfo {
   moduleSources: string[];

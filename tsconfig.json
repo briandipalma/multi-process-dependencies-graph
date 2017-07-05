@@ -1,12 +1,9 @@
 {
-    "compilerOptions": {
-        "allowJs": true,
-        "checkJs": true,
-        "noEmit": true,
-        "strict": true,
-        "target": "esnext"
-    },
-    "include": [
-        "./src/"
-    ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "./lib",
+    "strict": true,
+    "target": "esnext"
+  },
+  "include": ["./src/"]
 }

@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "build": "tsc",
+    "start": "node lib/index.js",
+    "start:ts": "ts-node src/index.ts",
+    "watch": "tsc --watch"
   },
   "keywords": [],
   "author": "Brian Di Palma <offler@gmail.com> (https://github.com/briandipalma)",

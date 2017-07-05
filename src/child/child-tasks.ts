@@ -5,6 +5,8 @@ const injectAcornJsx = require("acorn-jsx/inject");
 const injectAcornObjectRestSpread = require("acorn-object-rest-spread/inject");
 const { traverse } = require("estraverse-fb");
 
+import { resolveDependencyPaths } from "../utils/resolve";
+
 injectAcornJsx(acorn);
 injectAcornObjectRestSpread(acorn);
 
@@ -101,12 +103,15 @@ export function extractDependencies(path: string) {
 
   traverse(ast, importsVisitor);
 
+  const moduleSourcesToPath = resolveDependencyPaths(path, moduleSources);
+
   if (process.send) {
     process.send({
       type: "dependencies-extracted",
       data: {
         ast,
         moduleSources,
+        moduleSourcesToPath,
         path,
         sourceCode
       }

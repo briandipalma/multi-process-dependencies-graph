@@ -6,6 +6,7 @@ import { createProcess } from "./parent-utils";
 export interface FileInfo {
   ast: {};
   moduleSources: string[];
+  moduleSourcesToPath: { [x: string]: string };
   path: string;
   sourceCode: string;
 }
@@ -71,14 +72,15 @@ export class ParentState {
     }
   }
 
-  /**
-   * @param {string} path - An absolute file path.
-   */
-  queueFileToParse(path: string) {
-    if (this.memoryFS[path] === undefined) {
-      this.memoryFS[path] = new FileGraphNode(path);
-      this.resolvedNodesToProcess.push(this.memoryFS[path]);
+  queueFilesToParse(moduleSourcesToPath: { [x: string]: string }) {
+    for (const path of Object.values(moduleSourcesToPath)) {
+      if (this.memoryFS[path] === undefined) {
+        this.memoryFS[path] = new FileGraphNode(path);
+        this.resolvedNodesToProcess.push(this.memoryFS[path]);
+      }
     }
+
+    this.handleOutstandingWork();
   }
 
   _extractFileDependencies() {

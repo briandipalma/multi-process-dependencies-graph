@@ -1,11 +1,10 @@
-import { resolveDependencies } from "../utils/resolve";
 import { FileInfo, ParentState } from "../parent/ParentState";
 
 export class FileGraphNode {
   ast: {};
   path: string;
   moduleSources: string[];
-  moduleSourceToPath: { [x: string]: string };
+  moduleSourcesToPath: { [x: string]: string };
   sourceCode: string;
 
   /**
@@ -19,6 +18,8 @@ export class FileGraphNode {
     this.ast = data.ast;
     this.sourceCode = data.sourceCode;
     this.moduleSources = data.moduleSources;
-    this.moduleSourceToPath = resolveDependencies(this, parentState);
+    this.moduleSourcesToPath = data.moduleSourcesToPath;
+
+    parentState.queueFilesToParse(data.moduleSourcesToPath);
   }
 }

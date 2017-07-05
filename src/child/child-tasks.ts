@@ -5,6 +5,7 @@ const injectAcornJsx = require("acorn-jsx/inject");
 const injectAcornObjectRestSpread = require("acorn-object-rest-spread/inject");
 const { traverse } = require("estraverse-fb");
 
+import { transformText } from "./child-utils";
 import { resolveDependencyPaths } from "../utils/resolve";
 
 injectAcornJsx(acorn);
@@ -61,8 +62,7 @@ function moduleSourcesFilter(moduleSources: string[], path: string) {
       moduleSource.startsWith("service!") ||
       moduleSource.endsWith(".less") ||
       moduleSource.endsWith(".css") ||
-      moduleSource.endsWith(".properties") ||
-      moduleSource.endsWith(".html")
+      moduleSource.endsWith(".properties")
     ) {
       return;
     }
@@ -95,7 +95,8 @@ function safeReadFile(path: string) {
 }
 
 export function extractDependencies(path: string) {
-  const sourceCode = safeReadFile(path);
+  const fileText = safeReadFile(path);
+  const sourceCode = transformText(fileText, path);
   const ast = safeParse(sourceCode, path);
   const moduleSources: string[] = [];
   const moduleSourceHandler = moduleSourcesFilter(moduleSources, path);

@@ -7,6 +7,7 @@ const injectAcornObjectRestSpread = require("acorn-object-rest-spread/inject");
 const { traverse } = require("estraverse-fb");
 
 import { transformText } from "./child-utils";
+import { FileInfo } from "../parent/ParentState";
 import { resolveDependencyPaths } from "../utils/resolve";
 
 injectAcornJsx(acorn);
@@ -97,9 +98,15 @@ function safeReadFile(path: string) {
   }
 }
 
-export function extractDependencies(path: string) {
-  const fileText = safeReadFile(path);
-  const sourceCode = transformText(fileText, path);
+function sendExtractedDependencies(data: FileInfo) {
+  if (process.send) {
+    process.send({ type: "dependencies-extracted", data });
+  } else {
+    console.warn("process.send function does not exist.");
+  }
+}
+
+function parseCode(sourceCode: string, path: string) {
   const ast = safeParse(sourceCode, path);
   const moduleSources: string[] = [];
   const moduleSourceHandler = moduleSourcesFilter(moduleSources, path);
@@ -109,17 +116,18 @@ export function extractDependencies(path: string) {
 
   const moduleSourcesToPath = resolveDependencyPaths(path, moduleSources);
 
-  if (process.send) {
-    process.send({
-      type: "dependencies-extracted",
-      data: {
-        moduleSources,
-        moduleSourcesToPath,
-        path,
-        sourceCode
-      }
-    });
-  } else {
-    console.warn("process.send function does not exist.");
-  }
+  return {
+    moduleSources,
+    moduleSourcesToPath,
+    path,
+    sourceCode
+  };
+}
+
+export function extractDependencies(path: string) {
+  const fileText = safeReadFile(path);
+  const sourceCode = transformText(fileText, path);
+  const fileInfo = parseCode(sourceCode, path);
+
+  sendExtractedDependencies(fileInfo);
 }

@@ -1,37 +1,32 @@
 const { readFileSync } = require("fs");
 
-// @ts-ignore
 const acorn = require("acorn");
 const injectAcornJsx = require("acorn-jsx/inject");
 const injectAcornObjectRestSpread = require("acorn-object-rest-spread/inject");
-// @ts-ignore
 const { traverse } = require("estraverse-fb");
 
 injectAcornJsx(acorn);
 injectAcornObjectRestSpread(acorn);
 
-/**
- * @typedef {Object} CallExpressionNode
- * @property {Object[]} arguments
- * @property {{name: string, type: string}} callee
- */
+interface ASTNode {
+  type: string;
+  // CallExpression
+  arguments: { value: string }[];
+  callee: { name: string; type: string };
+  // ImportDeclaration
+  source: { value: string };
+}
 
-/**
- * @param {CallExpressionNode} node
- */
-function isAPackageImport(node) {
+function isAPackageImport(node: ASTNode) {
   return node.callee.name === "require" && node.callee.type === "Identifier";
 }
 
 /**
  * @param {function(string)} moduleSourceHandler
  */
-function createImportsVisitor(moduleSourceHandler) {
+function createImportsVisitor(moduleSourceHandler: (x: string) => void) {
   return {
-    /**
-     * @param {*} node 
-     */
-    enter(node) {
+    enter(node: ASTNode) {
       if (node.type === "CallExpression") {
         if (isAPackageImport(node) && node.arguments[0].value) {
           moduleSourceHandler(node.arguments[0].value);
@@ -48,8 +43,8 @@ function createImportsVisitor(moduleSourceHandler) {
  * @param {string} path 
  * @return {function(string)}
  */
-function moduleSourcesFilter(moduleSources, path) {
-  return (/** @type {string} */ moduleSource) => {
+function moduleSourcesFilter(moduleSources: string[], path: string) {
+  return (moduleSource: string) => {
     if (
       path.endsWith("fell/converted_library.js") ||
       path.endsWith("momentjs/converted_library.js") ||
@@ -74,11 +69,7 @@ function moduleSourcesFilter(moduleSources, path) {
   };
 }
 
-/**
- * @param {string} sourceCode
- * @param {string} path 
- */
-function safeParse(sourceCode, path) {
+function safeParse(sourceCode: string, path: string) {
   try {
     return acorn.parse(sourceCode, {
       plugins: { jsx: true, objectRestSpread: true },
@@ -91,11 +82,7 @@ function safeParse(sourceCode, path) {
   }
 }
 
-/**
- * @param {string} sourceCode
- * @param {string} path 
- */
-function safeReadFile(path) {
+function safeReadFile(path: string) {
   try {
     return readFileSync(path, "utf8");
   } catch (e) {
@@ -105,17 +92,16 @@ function safeReadFile(path) {
   }
 }
 
-/**
- * @param {{type: string, data: {path: string}}} message 
- */
-function handleParentMessage(message) {
+function handleParentMessage(message: {
+  type: string;
+  data: { path: string };
+}) {
   const { type, data: { path } } = message;
 
   if (type === "extract-dependencies") {
     const sourceCode = safeReadFile(path);
     const ast = safeParse(sourceCode, path);
-    /** @type {string[]} */
-    const moduleSources = [];
+    const moduleSources: string[] = [];
     const moduleSourceHandler = moduleSourcesFilter(moduleSources, path);
     const importsVisitor = createImportsVisitor(moduleSourceHandler);
 

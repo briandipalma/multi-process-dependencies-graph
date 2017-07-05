@@ -13,6 +13,7 @@ module.exports = {
       2,
       ...restricted.filter(r => r.selector !== "ForOfStatement")
     ],
-    "no-underscore-dangle": ["error", { allowAfterThis: true }]
+    "no-underscore-dangle": ["error", { allowAfterThis: true }],
+    "import/prefer-default-export": 0
   }
 };

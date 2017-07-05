@@ -1,8 +1,8 @@
 const { dirname } = require("path");
 const { sync } = require("resolve");
 
-import { FileGraphNode } from "./FileGraphNode";
-import { ParentState } from "./ParentState";
+import { FileGraphNode } from "../graph/FileGraphNode";
+import { ParentState } from "../parent/ParentState";
 
 export function resolveDependencies(
   fileGraphNode: FileGraphNode,

@@ -1,5 +1,5 @@
-import { resolveDependencies } from "./resolve";
-import { FileInfo, ParentState } from "./ParentState"
+import { resolveDependencies } from "../utils/resolve";
+import { FileInfo, ParentState } from "../parent/ParentState";
 
 export class FileGraphNode {
   ast: {};

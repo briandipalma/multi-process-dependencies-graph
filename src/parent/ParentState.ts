@@ -1,6 +1,6 @@
 const { cpus } = require("os");
 
-import { FileGraphNode } from "./FileGraphNode";
+import { FileGraphNode } from "../graph/FileGraphNode";
 import { createProcess } from "./parent-utils";
 
 export interface FileInfo {

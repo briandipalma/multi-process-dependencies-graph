@@ -3,7 +3,7 @@ const { join } = require("path");
 
 import { FileInfo, ParentState } from "./ParentState";
 
-const childPath = join(__dirname, "./child-process-module");
+const childPath = join(__dirname, "../child/child-process-module");
 
 export function createProcess(parentState: ParentState) {
   // Remove inspect flag as child processes try to bind to same port as parent.

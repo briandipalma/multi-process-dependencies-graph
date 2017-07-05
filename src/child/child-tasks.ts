@@ -92,37 +92,26 @@ function safeReadFile(path: string) {
   }
 }
 
-function handleParentMessage(message: {
-  type: string;
-  data: { path: string };
-}) {
-  const { type, data: { path } } = message;
+export function extractDependencies(path: string) {
+  const sourceCode = safeReadFile(path);
+  const ast = safeParse(sourceCode, path);
+  const moduleSources: string[] = [];
+  const moduleSourceHandler = moduleSourcesFilter(moduleSources, path);
+  const importsVisitor = createImportsVisitor(moduleSourceHandler);
 
-  if (type === "extract-dependencies") {
-    const sourceCode = safeReadFile(path);
-    const ast = safeParse(sourceCode, path);
-    const moduleSources: string[] = [];
-    const moduleSourceHandler = moduleSourcesFilter(moduleSources, path);
-    const importsVisitor = createImportsVisitor(moduleSourceHandler);
+  traverse(ast, importsVisitor);
 
-    traverse(ast, importsVisitor);
-
-    if (process.send) {
-      process.send({
-        type: "dependencies-extracted",
-        data: {
-          ast,
-          moduleSources,
-          path,
-          sourceCode
-        }
-      });
-    } else {
-      console.warn("process.send function does not exist.");
-    }
+  if (process.send) {
+    process.send({
+      type: "dependencies-extracted",
+      data: {
+        ast,
+        moduleSources,
+        path,
+        sourceCode
+      }
+    });
   } else {
-    console.log(`Received unknown message ${JSON.stringify(type)}`);
+    console.warn("process.send function does not exist.");
   }
 }
-
-process.on("message", handleParentMessage);

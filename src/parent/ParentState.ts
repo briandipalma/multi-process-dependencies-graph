@@ -3,6 +3,8 @@ const { cpus } = require("os");
 import { FileGraphNode } from "../graph/FileGraphNode";
 import { createProcess } from "./parent-utils";
 
+const CORES = cpus();
+
 export interface FileInfo {
   moduleSources: string[];
   moduleSourcesToPath: { [x: string]: string };
@@ -24,7 +26,7 @@ export class ParentState {
     this.startTime = new Date();
     const graphEntryNode = new FileGraphNode(graphEntry);
 
-    this.availableProcesses = cpus().map(() => createProcess(this));
+    this.availableProcesses = CORES.map(() => createProcess(this));
     this.memoryFS = { [graphEntry]: graphEntryNode };
     this.resolvedNodesToProcess = [graphEntryNode];
     this.occupiedProcesses = {};
@@ -47,7 +49,7 @@ export class ParentState {
 
     if (
       this.resolvedNodesToProcess.length === 0 &&
-      this.availableProcesses.length === cpus().length
+      this.availableProcesses.length === CORES.length
     ) {
       console.log(
         "Finished building graph.",

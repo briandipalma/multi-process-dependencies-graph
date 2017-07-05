@@ -1,4 +1,5 @@
 const { readFileSync } = require("fs");
+const { join } = require("path");
 
 const acorn = require("acorn");
 const injectAcornJsx = require("acorn-jsx/inject");
@@ -49,10 +50,12 @@ function createImportsVisitor(moduleSourceHandler: (x: string) => void) {
 function moduleSourcesFilter(moduleSources: string[], path: string) {
   return (moduleSource: string) => {
     if (
-      path.endsWith("fell/converted_library.js") ||
-      path.endsWith("momentjs/converted_library.js") ||
-      path.endsWith("bignumberjs/converted_library.js") ||
-      path.endsWith("npm-modules/converted_library.js")
+      path.endsWith(join("fell", "converted_library.js")) ||
+      path.endsWith(join("momentjs", "converted_library.js")) ||
+      path.endsWith(join("bignumberjs", "converted_library.js")) ||
+      path.endsWith(join("npm-modules", "converted_library.js")) ||
+      path.endsWith(join("topiarist", "converted_library.js")) ||
+      path.endsWith(join("emitr", "converted_library.js"))
     ) {
       return;
     }

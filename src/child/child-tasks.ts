@@ -109,7 +109,6 @@ export function extractDependencies(path: string) {
     process.send({
       type: "dependencies-extracted",
       data: {
-        ast,
         moduleSources,
         moduleSourcesToPath,
         path,

@@ -1,7 +1,6 @@
 import { FileInfo, ParentState } from "../parent/ParentState";
 
 export class FileGraphNode {
-  ast: {};
   path: string;
   moduleSources: string[];
   moduleSourcesToPath: { [x: string]: string };
@@ -15,7 +14,6 @@ export class FileGraphNode {
   }
 
   processFileInfo(data: FileInfo, parentState: ParentState) {
-    this.ast = data.ast;
     this.sourceCode = data.sourceCode;
     this.moduleSources = data.moduleSources;
     this.moduleSourcesToPath = data.moduleSourcesToPath;

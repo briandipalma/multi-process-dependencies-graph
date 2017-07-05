@@ -4,7 +4,6 @@ import { FileGraphNode } from "../graph/FileGraphNode";
 import { createProcess } from "./parent-utils";
 
 export interface FileInfo {
-  ast: {};
   moduleSources: string[];
   moduleSourcesToPath: { [x: string]: string };
   path: string;
